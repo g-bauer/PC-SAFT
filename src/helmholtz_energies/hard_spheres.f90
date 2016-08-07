@@ -26,13 +26,13 @@
 !   - subroutine ....
 ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 module hard_spheres_mod
-    use kinds_mod, only: dp
-    use parameter_mod, only: PI
-    use saft_parameter_mod, only: saft_parameter
+    use kinds_mod, only: dp                                 ! loading 'real64' precision specifier (compiler independent)
+    use parameter_mod, only: PI                             ! loading pi=3.14159
+    use saft_parameter_mod, only: saft_parameter            ! loading derived type 'saft_parameter'
     implicit none
-    private
-    public :: a_tilde_hs
-    public :: g_hs_ij
+    private                                                 ! declaring everythin in this module 'private'
+    public :: a_tilde_hs                                    ! specifically declaring 'public'
+    public :: g_hs_ij                                       ! specifically declaring 'public'
 
 contains
 
