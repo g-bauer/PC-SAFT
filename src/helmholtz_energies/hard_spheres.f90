@@ -37,6 +37,10 @@ module hard_spheres_mod
 contains
 
     ! ##########################################################################
+    ! Function for the calculation of the hard-sphere contribution to the reduced
+    !  Helmholtz energy 'a_tilde_hs = A_hs/NkT' according to equation (A.6) in [1]
+    !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+    !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
     ! Contribution of the hard-sphere fluid to the Helmholtz energy a_tilde_hs = A_hs/NkT
     ! According to Equation (A.6) in [1]
     pure real(dp) function a_tilde_hs(saft_para, rho, x)

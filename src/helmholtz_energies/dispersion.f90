@@ -58,7 +58,7 @@ module dispersion_mod
 contains
     ! ##########################################################################
     ! Function for the calculation of the dispersive contribution to the reduced
-    !  Helmholtz energy according to equation (A.10) in
+    !  Helmholtz energy 'a_tilde_disp = A_disp/NkT' according to equation (A.10) in
     !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
     !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
 
