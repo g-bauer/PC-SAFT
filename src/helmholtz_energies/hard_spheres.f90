@@ -36,6 +36,7 @@ module hard_spheres_mod
 
 contains
 
+    ! ##########################################################################
     ! Contribution of the hard-sphere fluid to the Helmholtz energy a_tilde_hs = A_hs/NkT
     ! According to Equation (A.6) in [1]
     pure real(dp) function a_tilde_hs(saft_para, rho, x)
