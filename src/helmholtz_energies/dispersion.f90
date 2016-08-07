@@ -57,8 +57,8 @@ module dispersion_mod
 
 contains
     ! ##########################################################################
-    ! Function for the calculation of the dispersive contribution to the helmholtz
-    !  energy according to equation (A.10) in
+    ! Function for the calculation of the dispersive contribution to the reduced
+    !  Helmholtz energy according to equation (A.10) in
     !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
     !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
 
@@ -89,48 +89,51 @@ contains
 
         associate(p => saft_para)
 
-            ! Combinatin rule for PC-SAFT parameters 
-            sigma_ij = 0._dp
-            eps_k_ij = 0._dp
-            m2_eps_sig3_dash = 0._dp
-            m2_eps2_sig3_dash = 0._dp
+            ! Combination rules for PC-SAFT parameters
+            sigma_ij = 0._dp                ! zero initialization for summation
+            eps_k_ij = 0._dp                ! zero initialization for summation
+            m2_eps_sig3_dash = 0._dp        ! zero initialization for summation
+            m2_eps2_sig3_dash = 0._dp       ! zero initialization for summation
+
+            ! Calculation of combination rules
             do i = 1, p%N_comp
                 do j = 1, p%N_comp
-                    sigma_ij(j,i) = 0.5*(p%m(j) + p%m(i))
-                    eps_k_ij(j,i) = sqrt(p%eps_k(j)*p%eps_k(i)) * (1._dp - p%k_ij(j,i))
-                    m2_eps_sig3_dash = m2_eps_sig3_dash &
-                        + x(j) * x(i) * p%m(j) * p%m(i) &
-                        * eps_k_ij(j,i)/Temp * sigma_ij(j,i)
-                    m2_eps2_sig3_dash = m2_eps_sig3_dash &
-                        + x(j) * x(i) * p%m(j) * p%m(i) &
-                        * (eps_k_ij(j,i)/Temp)**2 * sigma_ij(j,i)
+                    sigma_ij(j,i) = 0.5*(p%m(j) + p%m(i))                                   ! mean segment diameter; equation (23) or (A.14) in [1]
+                    eps_k_ij(j,i) = sqrt(p%eps_k(j)*p%eps_k(i)) * (1._dp - p%k_ij(j,i))     ! binary interaction parameter; equation (24) or (A.15) in [1]
+                    m2_eps_sig3_dash = m2_eps_sig3_dash &                                   ! abbreviation (A.12) in [1]
+                        & + x(j) * x(i) * p%m(j) * p%m(i) &
+                        & * eps_k_ij(j,i)/Temp * sigma_ij(j,i)
+                    m2_eps2_sig3_dash = m2_eps_sig3_dash &                                  ! abbreviation (A.13) in [1]
+                        & + x(j) * x(i) * p%m(j) * p%m(i) &
+                        & * (eps_k_ij(j,i)/Temp)**2 * sigma_ij(j,i)
                 end do
             end do
 
-            ! mean segment number in the mixture
-            m_dash = sum(p%m*x)
+            ! Calculation of mean segment number in the mixture
+            m_dash = sum(p%m*x)                                 ! equation (6) or (A.5) in [1]
 
-            ! packing fraction eta
-            eta = PI/6._dp * rho * sum(x * p%m * p%d**3)
+            ! Calculation of packing fraction eta
+            eta = PI/6._dp * rho * sum(x * p%m * p%d**3)        ! from equation (A.20) in [1]
         end associate
 
-        ! integrals of the perturbation theory
-        I1 = 0.0
-        I2 = 0.0
+        ! Calculation of the integrals of the perturbation theory for hard chains
+        I1 = 0.0        ! zero initialization for summation
+        I2 = 0.0        ! zero initialization for summation
         do i = 0, 6
-            I1 = I1 + (a(0,i) &
+            I1 = I1 + (a(0,i) &                                                     ! combinations of equations (16) & (18) or equations (A.16) & (A.18) in [1]
             + (m_dash - 1._dp)/m_dash*a(1,i) &
             + (m_dash - 1._dp)/m_dash * (m_dash - 2._dp)/m_dash * a(2,i)) * eta**i
-            I2 = I2 + (b(0,i) &
+            I2 = I2 + (b(0,i) &                                                     ! combinations of equations (17) & (19) or equations (A.17) & (A.19) in [1]
             + (m_dash - 1._dp)/m_dash*b(1,i) &
             + (m_dash - 1._dp)/m_dash * (m_dash - 2._dp)/m_dash * b(2,i)) * eta**i
         end do
 
-        ! Compressibility expression C1
-        C1 = 1._dp / (1._dp + m_dash*(8._dp*eta - 2._dp*eta**2)/(1._dp - eta)**4 &
+        ! Calculation of the compressibility expression C1
+        C1 = 1._dp / (1._dp + m_dash*(8._dp*eta - 2._dp*eta**2)/(1._dp - eta)**4 &  ! equation (13), (25) or (A.11); attention: equation (A.11) is not missing the reziprocal (-)^-1        )
         + (1._dp - m_dash)*(20._dp*eta - 27._dp*eta**2 + 12._dp*eta**3 &
         - 2._dp*eta**4)/((1._dp - eta)*(2._dp - eta))**2)
 
+        ! Calculation of the reduced Helmholtz energy
         a_tilde_disp = -2._dp*PI*rho*I1*m2_eps_sig3_dash &
                      - PI*rho*m_dash*C1*I2*m2_eps2_sig3_dash
     end function a_tilde_disp
@@ -139,3 +142,4 @@ contains
 
 
 end module dispersion_mod
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
