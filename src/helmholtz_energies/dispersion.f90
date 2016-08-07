@@ -63,28 +63,33 @@ contains
     !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
 
     ! pure real function (in<PC-SAFT parameter>, in<densites>, in<temperature>, in<mole fractions>)
-    !  in  < saft_para :: saft_parameter {m(N_comp), sigma(N_comp), R(N_Comp), d(N_comp), eps_k(N_comp), k_ij(N_Comp,N_comp))} >
-    !  in  < rho       :: real    (N_grid, N_comp) >
-    !  out < dF_drho   :: real    (N_grid)         >
+    !  in  < saft_para    :: saft_parameter {m(N_comp), sigma(N_comp), R(N_Comp),
+    !                         d(N_comp), eps_k(N_comp), k_ij(N_Comp,N_comp))} >
+    !  in  < rho          :: real(N_comp) >
+    !  in  < Temp         :: real         >
+    !  in  < x            :: real(N_comp) >
+    !  out < a_tilde_disp :: real         >
+    ! --------------------------------------------------------------------------
     pure real(dp) function a_tilde_disp(saft_para, rho, Temp, x)
-        type(saft_parameter), intent(in) :: saft_para ! parameter container type
-        real(dp), intent(in) :: rho ! density
-        real(dp), intent(in) :: Temp ! temperature
-        real(dp), dimension(:), intent(in) :: x ! molefraction
+        type(saft_parameter),   intent(in) :: saft_para     ! parameter container type
+        real(dp),               intent(in) :: rho           ! density
+        real(dp),               intent(in) :: Temp          ! temperature
+        real(dp), dimension(:), intent(in) :: x             ! molefraction
 
-        integer :: i, j
-        real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: sigma_ij
-        real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: eps_k_ij
-        real(dp) :: m_dash
-        real(dp) :: m2_eps_sig3_dash
-        real(dp) :: m2_eps2_sig3_dash
-        real(dp) :: eta
-        real(dp) :: I1, I2
-        real(dp) :: C1
+        integer :: i, j                                     ! iteration variables
+
+        real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: sigma_ij ! array for mean PC-SAFT diameter
+        real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: eps_k_ij ! array for binary energy interactions
+        real(dp) :: m_dash                                  ! mean segment number
+        real(dp) :: m2_eps_sig3_dash                        ! mean (m(i)^2 eps_k(i)/T sig(i)^3)
+        real(dp) :: m2_eps2_sig3_dash                       ! mean (m(i)^2 (eps_k(i)/T)^2 sig(i)^3)
+        real(dp) :: eta                                     ! packing fraction
+        real(dp) :: I1, I2                                  ! integrals for chain perturbations; equations (14), (15) in [1]
+        real(dp) :: C1                                      ! derivative of compressibilities; equations (13) in [1]
 
         associate(p => saft_para)
 
-            ! combining rules for saft parameters
+            ! Combinatin rule for PC-SAFT parameters 
             sigma_ij = 0._dp
             eps_k_ij = 0._dp
             m2_eps_sig3_dash = 0._dp
