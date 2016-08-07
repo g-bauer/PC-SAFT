@@ -14,7 +14,7 @@
 !   -
 
 
-! ##############################################################################
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ! MODULE dispersion_mod
 !  This module contains all dispersion contributions for the PC-SAFT equation
 !  of state:
@@ -25,15 +25,19 @@
 !     ~ <real, dimension(N_comp)> :: x              ! mole fractions
 !
 !   - subroutine ....
-! ##############################################################################
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 module dispersion_mod
-    use kinds_mod, only: dp
-    use parameter_mod, only: PI
-    use saft_parameter_mod, only: saft_parameter
+    use kinds_mod, only: dp                             ! loading 'real64' precision specifier (compiler independent)
+    use parameter_mod, only: PI                         ! loading pi=3.14159
+    use saft_parameter_mod, only: saft_parameter        ! loading derived type 'saft_parameter'
     implicit none
-    private
-    public :: a_tilde_disp
+    private                                             ! declaring everythin in this module 'private'
+    public :: a_tilde_disp                              ! specifically declaring 'public'
 
+    ! Universal model constants for integrals of perturbation for hard chains.
+    !  Table 1, used for equations (18) & (19) in
+    !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+    !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
     real(dp), parameter, dimension(0:2,0:6) :: a = &
     reshape([   0.9105631445, -0.3084016918, -0.0906148351, &
     0.6361281449,  0.1860531159,  0.4527842806, &
@@ -52,9 +56,16 @@ module dispersion_mod
     -355.6023561,  -165.2076935,   -29.66690559 ],[3,7])
 
 contains
+    ! ##########################################################################
+    ! Function for the calculation of the dispersive contribution to the helmholtz
+    !  energy according to equation (A.10) in
+    !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+    !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
 
-    ! dispersive contribution to the helmholtz energy according to Equiation (A.10) of
-    ! [1]
+    ! pure real function (in<PC-SAFT parameter>, in<densites>, in<temperature>, in<mole fractions>)
+    !  in  < saft_para :: saft_parameter {m(N_comp), sigma(N_comp), R(N_Comp), d(N_comp), eps_k(N_comp), k_ij(N_Comp,N_comp))} >
+    !  in  < rho       :: real    (N_grid, N_comp) >
+    !  out < dF_drho   :: real    (N_grid)         >
     pure real(dp) function a_tilde_disp(saft_para, rho, Temp, x)
         type(saft_parameter), intent(in) :: saft_para ! parameter container type
         real(dp), intent(in) :: rho ! density
@@ -118,4 +129,8 @@ contains
         a_tilde_disp = -2._dp*PI*rho*I1*m2_eps_sig3_dash &
                      - PI*rho*m_dash*C1*I2*m2_eps2_sig3_dash
     end function a_tilde_disp
+    ! ##########################################################################
+
+
+
 end module dispersion_mod
