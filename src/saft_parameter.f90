@@ -26,11 +26,11 @@ module saft_parameter_mod
     ! dimension = number of components
     type saft_parameter
         integer :: N_comp
-        real(dp), allocatable, dimension(:) :: m ! segment number
-        real(dp), allocatable, dimension(:) :: sigma ! segment diameter
-        real(dp), allocatable, dimension(:) :: R ! segment radius (temperature dependent)
-        real(dp), allocatable, dimension(:) :: d ! segment diameter (temperature dependent)
-        real(dp), allocatable, dimension(:) :: eps_k ! energy parameter eps/kB
+        real(dp), allocatable, dimension(:)  :: m ! segment number
+        real(dp), allocatable, dimension(:)  :: sigma ! segment diameter
+        real(dp), allocatable, dimension(:)  :: R ! segment radius (temperature dependent)
+        real(dp), allocatable, dimension(:)  :: d ! segment diameter (temperature dependent)
+        real(dp), allocatable, dimension(:)  :: eps_k ! energy parameter eps/kB
         real(dp), allocatable, dimension(:,:) :: k_ij ! binary parameter
         real(dp) :: Temp
     end type saft_parameter
@@ -39,11 +39,11 @@ contains
 
     ! allocate parameter arrays and set initial values
     subroutine init_saft_parameters(saft_para, Temp, m, sigma, eps_k, k_ij)
-        type(saft_parameter), intent(inout) :: saft_para
-        real(dp), intent(in) :: Temp
-        real(dp), dimension(:), intent(in)  :: m
-        real(dp), dimension(:), intent(in)  :: sigma
-        real(dp), dimension(:), intent(in)  :: eps_k
+        type(saft_parameter), intent(inout)   :: saft_para
+        real(dp), intent(in)                  :: Temp
+        real(dp), dimension(:), intent(in)    :: m
+        real(dp), dimension(:), intent(in)    :: sigma
+        real(dp), dimension(:), intent(in)    :: eps_k
         real(dp), dimension(:,:), intent(in)  :: k_ij
 
         ! get number of components from array size
