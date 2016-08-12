@@ -2,6 +2,10 @@
 
 This is a Fortran implementation of the celebrated PC-SAFT equation of state.
 
+Written by: G. Bauer & R. Stierle
+
+
+
 Note: Work in progress.
 
 
