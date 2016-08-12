@@ -1,10 +1,10 @@
-!  ______                                    ______ _______ _______ _______
-! (______)                                  / _____|_______|_______|_______)
-!  _     _ ____ _____  ____  ___  ____ ____( (____  _______ _____      _
-! | |   | / ___|____ |/ _  |/ _ \|  _ (_____)____ \|  ___  |  ___)    | |
-! | |__/ / |   / ___ ( (_| | |_| | | | |    _____) ) |   | | |        | |
-! |_____/|_|   \_____|\___ |\___/|_| |_|   (______/|_|   |_|_|        |_|
-!                    (_____|
+!  ______                                              ______  _______  _______  _______ 
+! (______)                                            / _____)(_______)(_______)(_______)
+!  _     _   ____  _____   ____   ___   ____   _____ ( (____   _______  _____       _
+! | |   | | / ___)(____ | / _  | / _ \ |  _ \ (_____) \____ \ |  ___  ||  ___)     | |
+! | |__/ / | |    / ___ |( (_| || |_| || | | |        _____) )| |   | || |         | |
+! |_____/  |_|    \_____| \___ | \___/ |_| |_|       (______/ |_|   |_||_|         |_|
+!                       (_____|
 !
 !  Written by: Gernot Bauer, Rolf Stierle
 !  Last update: 7. August 2016
@@ -98,14 +98,15 @@ contains
             ! Calculation of combination rules
             do i = 1, p%N_comp
                 do j = 1, p%N_comp
-                    sigma_ij(j,i) = 0.5*(p%m(j) + p%m(i))                                   ! mean segment diameter; equation (23) or (A.14) in [1]
-                    eps_k_ij(j,i) = sqrt(p%eps_k(j)*p%eps_k(i)) * (1._dp - p%k_ij(j,i))     ! binary interaction parameter; equation (24) or (A.15) in [1]
-                    m2_eps_sig3_dash = m2_eps_sig3_dash &                                   ! abbreviation (A.12) in [1]
+                    sigma_ij(j,i) = 0.5*(p%m(j) + p%m(i))                       ! mean segment diameter; equation (23) or (A.14) in [1]
+                    eps_k_ij(j,i) = sqrt(p%eps_k(j)*p%eps_k(i)) &
+                                  & * (1._dp - p%k_ij(j,i))                     ! binary interaction parameter; equation (24) or (A.15) in [1]
+                    m2_eps_sig3_dash = m2_eps_sig3_dash &                       ! abbreviation (A.12) in [1]
                         & + x(j) * x(i) * p%m(j) * p%m(i) &
-                        & * eps_k_ij(j,i)/Temp * sigma_ij(j,i)
-                    m2_eps2_sig3_dash = m2_eps_sig3_dash &                                  ! abbreviation (A.13) in [1]
+                        & * eps_k_ij(j,i)/Temp * sigma_ij(j,i)**3
+                    m2_eps2_sig3_dash = m2_eps_sig3_dash &                      ! abbreviation (A.13) in [1]
                         & + x(j) * x(i) * p%m(j) * p%m(i) &
-                        & * (eps_k_ij(j,i)/Temp)**2 * sigma_ij(j,i)
+                        & * (eps_k_ij(j,i)/Temp)**2 * sigma_ij(j,i)**3
                 end do
             end do
 
