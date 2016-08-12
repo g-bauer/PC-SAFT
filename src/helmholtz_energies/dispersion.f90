@@ -146,5 +146,101 @@ contains
 
 
 
+  ! ############################################################################
+  ! Function for the calculation of the dispersion compressibility 'Z_hs'
+  !  according to equations (A.28) in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<temperature>, in<molar fractions>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < Temp      :: real         >
+  !  in  < x         :: real(N_comp) >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function Z_disp(saft_para, rho, Temp, x)
+    ! Input variables
+    type(saft_parameter), intent(in)   :: saft_para     ! parameter container type
+    real(dp), intent(in)               :: rho           ! density
+    real(dp), intent(in)               :: Temp          ! temperature
+    real(dp), dimension(:), intent(in) :: x             ! molefraction
+
+    ! Local variables
+    integer :: i, j                                     ! iteration variables
+
+    real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: sigma_ij ! array for mean PC-SAFT diameter
+    real(dp), dimension(saft_para%N_comp,saft_para%N_comp) :: eps_k_ij ! array for binary energy interactions
+    real(dp) :: m_dash                                  ! mean segment number
+    real(dp) :: m2_eps_sig3_dash                        ! mean (m(i)^2 eps_k(i)/T sig(i)^3)
+    real(dp) :: m2_eps2_sig3_dash                       ! mean (m(i)^2 (eps_k(i)/T)^2 sig(i)^3)
+    real(dp) :: eta                                     ! packing fraction
+    real(dp) :: I1, I2                                  ! integrals for chain perturbations; equations (14), (15) in [1]
+    real(dp) :: C1                                      ! derivative of compressibilities; equations (13) in [1]
+
+
+    associate(p => saft_para)
+      ! Combination rules for PC-SAFT parameters
+      sigma_ij = 0._dp                ! zero initialization for summation
+      eps_k_ij = 0._dp                ! zero initialization for summation
+      m2_eps_sig3_dash = 0._dp        ! zero initialization for summation
+      m2_eps2_sig3_dash = 0._dp       ! zero initialization for summation
+
+      ! Calculation of combination rules
+      do i = 1, p%N_comp
+        do j = 1, p%N_comp
+          sigma_ij(j,i) = 0.5*(p%m(j) + p%m(i))                       ! mean segment diameter; equation (23) or (A.14) in [1]
+          eps_k_ij(j,i) = sqrt(p%eps_k(j)*p%eps_k(i)) &
+                        & * (1._dp - p%k_ij(j,i))                     ! binary interaction parameter; equation (24) or (A.15) in [1]
+          m2_eps_sig3_dash = m2_eps_sig3_dash &                       ! abbreviation (A.12) in [1]
+                           & + x(j) * x(i) * p%m(j) * p%m(i) &
+                           & * eps_k_ij(j,i)/Temp * sigma_ij(j,i)**3
+          m2_eps2_sig3_dash = m2_eps_sig3_dash &                      ! abbreviation (A.13) in [1]
+                            & + x(j) * x(i) * p%m(j) * p%m(i) &
+                            & * (eps_k_ij(j,i)/Temp)**2 * sigma_ij(j,i)**3
+        end do
+      end do
+
+      ! Calculation of mean segment number in the mixture
+      m_dash = sum(p%m*x)                                 ! equation (6) or (A.5) in [1]
+
+      ! Calculation of packing fraction eta
+      eta = PI/6._dp * rho * sum(x * p%m * p%d**3)        ! from equation (A.20) in [1]
+    end associate
+
+    ! Calculation of the integrals of the perturbation theory for hard chains
+    !  and their derivatives w.r.t eta
+    I2     = 0.0        ! zero initialization for summation
+    detaI1 = 0.0        ! zero initialization
+    detaI2 = 0.0        ! zero initialization
+    do i = 0, 6
+      I2 = I2 + (b(0,i) &                                                     ! combinations of equations (17) & (19) or equations (A.17) & (A.19) in [1]
+         & + (m_dash - 1._dp)/m_dash*b(1,i) &
+         & + (m_dash - 1._dp)/m_dash * (m_dash - 2._dp)/m_dash * b(2,i)) * eta**i
+      detaI1 = detaI1 + (a(0,i)                 &                             ! equation (A.29) in [1]
+             & + (m_dash - 1._dp)/m_dash*a(1,i) &
+             & + (m_dash - 1._dp)/m_dash * (m_dash - 2._dp)/m_dash * a(2,i)) &
+             & * (real(i) + 1._dp) * eta**i
+      detaI2 = detaI2 +(b(0,i)                 &                              ! equation (A.30) in [1]
+             & + (m_dash - 1._dp)/m_dash*b(1,i) &
+             & + (m_dash - 1._dp)/m_dash * (m_dash - 2._dp)/m_dash * b(2,i)) &
+             & * (real(i) + 1._dp) * eta**i
+    end do
+
+    C1 = 1._dp / (1._dp + m_dash*(8._dp*eta - 2._dp*eta**2)/(1._dp - eta)**4 &  ! equation (13), (25) or (A.11); attention: equation (A.11) is missing the reziprocal (-)^-1 on the last line
+       & + (1._dp - m_dash)*(20._dp*eta - 27._dp*eta**2 + 12._dp*eta**3 &
+       & - 2._dp*eta**4)/((1._dp - eta)*(2._dp - eta))**2)
+    C2 = - C1**2 * ( m_dash*(-4._dp*eta**2 + 20._dp*eta + 8._dp)/(1._dp-eta)**5  & ! equation (A.31) in [1]
+       & (1._dp - m_dash) * (2._dp*eta**3 + 12._dp*eta**2 - 48._dp*eta + 40._dp) &
+       &  / ((1._dp-eta)*(2._dp-eta))**3 )
+
+    ! Calculation of the dispersion compressibility contribution
+    Z_disp = -2._dp*PI*rho*detaI1*m2_eps_sig3_dash &
+           & -PI*rho*m_dash* ( C1*detaI2 + C2*eta*I2 ) * m2_eps2_sig3_dash
+
+  end function Z_disp
+
+
+
+
 end module dispersion_mod
 ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

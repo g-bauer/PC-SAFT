@@ -189,7 +189,7 @@ contains
 
     ! Radial distribution function 'g_ij(r)' for the hard-sphere fluid;
     !  equation (A.27) in [1]
-    rho_dg_hs_ij_drho = zeta(3)/(1-zeta(3)) &
+    rho_dg_hs_ij_drho = zeta(3)/(1-zeta(3)) &                                   ! equation (A.27) in [1]
      & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j))) &
      & * ((3._dp*zeta(2))/((1-zeta(3))**2) + (6._dp*zeta(2)*zeta(3))/((1-zeta(3))**3)) &
      & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j)))**2  &

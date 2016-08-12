@@ -29,7 +29,7 @@
 module hard_chains_mod
   use kinds_mod, only: dp                           ! loading 'real64' precision specifier (compiler independent)
   use saft_parameter_mod, only: saft_parameter      ! loading derived type 'saft_parameter'
-  use hard_spheres_mod, only: a_tilde_hs, g_hs_ij   ! loading hard-sphere Helmholtz energy density and radial distribution function
+  use hard_spheres_mod, only: a_tilde_hs, g_hs_ij, Z_hs, rho_dg_hs_ij_drho
   implicit none
   private
   public :: a_tilde_hc
@@ -67,12 +67,58 @@ contains
               & * log(g_hs_ij(saft_para, rho, x, i, i))
     end do
     ! Mean segment number
-    m_dash = sum(saft_para%m*x)                                     ! equation (A.5) in [1] 
+    m_dash = sum(saft_para%m*x)                                     ! equation (A.5) in [1]
 
     ! Calculate Helmholtz energy density for hard-chains
     a_tilde_hc = m_dash*a_tilde_hs(saft_para, rho, x) - summand     ! equation (A.4) in [1]
   end function a_tilde_hc
   ! ############################################################################
+
+
+
+
+
+  ! ############################################################################
+  ! Function for the calculation of the hard-chain compressibility 'Z_hc'
+  !  according to equations (A.25) in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<molar fractions>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < x         :: real(N_comp) >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function Z_hc(saft_para, rho, x)
+    ! Input variables
+    type(saft_parameter)                  :: saft_para    ! parameter container type
+    real(dp), dimension(:,), intent(in)   :: rho          ! density
+    real(dp), intent(in)                  :: x            ! molefraction
+
+    ! Local variables
+    real(dp)                  :: m_dash     ! mean segment number
+    real(dp)                  :: summand
+    integer                   :: i          ! iteration variable
+
+    ! Mean segment number
+    m_dash = sum(saft_para%m*x)                                     ! equation (A.5) in [1]
+
+    !
+    summand = 0.0
+    do i = 1, saft_para%N_comp
+      summand = summand + x(i)*(m_dash - 1._dp)/g_hs_ij(saft_para,rho,x,i,i) &  ! equation (A.25) in [1]
+              & * rho_dg_hs_ij_drho(saft_para,rho,x,i,i)
+    end do
+
+
+    ! Calculation of compressibility 'Z_hs'
+    Z_hc = m_dash*Z_hs(saft_para,rho_x) - summand                 ! equation (A.25) in [1]
+
+  end function Z_hc
+  ! ############################################################################
+
+
+
 
 
 
