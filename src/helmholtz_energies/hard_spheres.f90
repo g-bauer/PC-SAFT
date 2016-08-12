@@ -221,10 +221,10 @@ contains
     real(dp), intent(in)                        :: x            ! molefraction
 
     ! Local variables
-    real(dp), dimension(0:3)                    :: zeta   ! weighted densities
-    real(dp), dimension(0:3, :), allocatable    :: zetax  ! partial densities
-    real(dp), dimension(:),      allocatable    :: da_hs_dx
-    integer                                     :: n      ! iteration variable
+    real(dp), dimension(0:3)                    :: zeta         ! weighted densities
+    real(dp), dimension(0:3, :), allocatable    :: zetax        ! partial densities
+    real(dp), dimension(:),      allocatable    :: da_hs_dx     ! partial derivative of the reduced Helmholtz energy hard-sphere contribution w.r.t. the molar fractions
+    integer                                     :: n, k         ! iteration variables
 
     ! Allocation of variables
     allocate( zetax(0:3, saft_para%N_comp), da_hs_dx(saft_para%N_comp) )
@@ -255,17 +255,69 @@ contains
             & + (zeta(0) - zeta(2)**3/zeta(3)**2) * zetax(3,k)/(1._dp-zeta(3)) )
     end do
 
-    ! Residual chemical potential of the
+    ! Residual chemical potential of the hard-sphere contribution multiplied with 'beta'
     equation (A.33) in [1]
     do k = 1, saft_para%N_comp
-      beta_mu_hs(k) = a_tilde_hs(saft_para, rho, x) + (Z - 1._dp) &
+      beta_mu_hs(k) = a_tilde_hs(saft_para, rho, x) + (Z_hs - 1._dp) &          ! equation (A.33) in [1]
                     & + da_hs_dx(k) - sum( x * da_hs_dx )
     end do
 
+ end function beta_mu_hs
+  ! ############################################################################
 
 
 
 
+  ! ############################################################################
+  ! Function for the calculation of the derivative of the hard-sphere radial
+  !  distribution function w.r.t the total molar fraction
+  !  according to equation (A.37) in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<molar fractions>, in<component index>, in<component index>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < x         :: real(N_comp) >
+  !  in  < i         :: integer      >
+  !  in  < j         :: integer      >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function dg_hs_ij_dxk(saft_para, rho, x, i, j)
+    ! Input variables
+    type(saft_parameter), intent(in)            :: saft_para    ! parameter container type
+    real(dp), intent(in)                        :: rho          ! density
+    real(dp), dimension(:), intent(in)          :: x            ! molefraction
+    integer, intent(in)                         :: i, j         ! component identifier
 
+    ! Local variables
+    real(dp), dimension(0:3)                    :: zeta         ! weighted densities
+    real(dp), dimension(0:3, :), allocatable    :: zetax        ! partial densities
+    integer                                     :: n, k         ! iteration variables
+
+
+    ! Allocation of variables
+    allocate( zetax(0:3, saft_para%N_comp) )
+
+    ! Weighted densities
+    do n = 0, 3
+      zeta(n) = PI/6._dp * rho * sum(x * saft_para%m * saft_para%d**n)          ! equation (9) or (A.8) in [1]
+    end do
+
+    ! Partial densities
+    do n = 0, 3
+      zetax(n,k) = PI/6._dp * rho * saft_para%m(k) * saft_para%d(k)**n          ! equation (A.34) in [1]
+    end do
+
+    ! Radial distribution function 'g_ij(r)' for the hard-sphere fluid;
+    !  equation (A.27) in [1]
+    dg_hs_ij_dxk = zetax(3,k)/(1-zeta(3))**2      &                             ! equation (A.37) in [1]
+        & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j))) &
+        & ( 3._dp*zetax(2,k)/(1._dp-zeta(3))**2 &
+        & + (6._dp*zeta(2)*zetax(3,k)) / (1._dp-zeta(3))**3 )  &
+        & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j)))**2 &
+        & * (  4._dp*zeta(2)*zetax(2,k)/(1-zeta(3))**3 &
+        & + 6._dp*zeta(2)**2*zetax(3,k) / (1-zeta(3))**4 )
+  end function dg_hs_ij_dxk
+  ! ############################################################################
 
 end module hard_spheres_mod
