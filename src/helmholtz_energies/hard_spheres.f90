@@ -31,8 +31,9 @@ module hard_spheres_mod
   use saft_parameter_mod, only: saft_parameter            ! loading derived type 'saft_parameter'
   implicit none
   private                                                 ! declaring everythin in this module 'private'
-  public :: a_tilde_hs                                    ! specifically declaring 'public'
-  public :: g_hs_ij                                       ! specifically declaring 'public'
+  public :: a_tilde_hs
+  public :: g_hs_ij
+  public :: Z_hs
 
 contains
 
@@ -72,6 +73,8 @@ contains
   ! ############################################################################
 
 
+
+
   ! ############################################################################
   ! Function for the calculation of the hard-sphere radial distribution function
   !  'g_hs(r)' according to equations (8) or (A.7) in [1].
@@ -84,7 +87,7 @@ contains
   !  in  < x         :: real(N_comp) >
   !  in  < i         :: integer      >
   !  in  < j         :: integer      >
-  ! ----------------------------------------------------------------------------------
+  ! ----------------------------------------------------------------------------
   pure real(dp) function g_hs_ij(saft_para, rho, x, i, j)
     ! Input variables
     type(saft_parameter), intent(in)    :: saft_para    ! parameter container type
@@ -113,6 +116,42 @@ contains
   ! ############################################################################
 
 
+
+
+  ! ############################################################################
+  ! Function for the calculation of the hard-sphere compressibility 'Z_hs'
+  !  according to equations (A.26) in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<molar fractions>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < x         :: real(N_comp) >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function Z_hs(saft_para, rho, x)
+    ! Input variables
+    type(saft_parameter)                  :: saft_para    ! parameter container type
+    real(dp), dimension(:,), intent(in)   :: rho          ! density
+    real(dp), intent(in)                  :: x            ! molefraction
+
+    ! Local variables
+    real(dp), dimension(0:3)  :: zeta   ! weighted densities
+    integer                   :: n      ! iteration variable
+
+
+
+    ! Weighted densities
+    do n = 0, 3
+      zeta(n) = PI/6._dp * rho * sum(x * saft_para%m * saft_para%d**n)    ! equation (9) or (A.8) in [1]
+    end do
+
+    ! Calculation of compressibility 'Z_hs'
+    Z_hs = zeta(3)/(1-zeta(3)) + 3._dp*zeta(1)*zeta(2)/(zeta(0)*(1-zeta(3))**2) &   ! equation (A.26) in [1]
+         & (3._dp*zeta(2)**3 - zeta(3)*zeta(2)**3)/(zeta(0)*(1-zeta(3))**3)
+
+  end function Z_hs
+  ! ############################################################################
 
 
 end module hard_spheres_mod
