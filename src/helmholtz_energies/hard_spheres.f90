@@ -154,4 +154,50 @@ contains
   ! ############################################################################
 
 
+
+
+  ! ############################################################################
+  ! Function for the calculation of the derivative of the hard-sphere radial
+  !  distribution function w.r.t the total density and multiplied by the
+  !  total density according to equation (A.27) in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<molar fractions>, in<component index>, in<component index>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < x         :: real(N_comp) >
+  !  in  < i         :: integer      >
+  !  in  < j         :: integer      >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function rho_dg_hs_ij_drho(saft_para, rho, x, i, j)
+    ! Input variables
+    type(saft_parameter), intent(in)    :: saft_para    ! parameter container type
+    real(dp), intent(in)                :: rho          ! density
+    real(dp), dimension(:), intent(in)  :: x            ! molefraction
+    integer, intent(in)                 :: i, j         ! component identifier
+
+    ! Local variables
+    real(dp), dimension(0:3)  :: zeta   ! weighted densities
+    integer                   :: n      ! iteration variable
+
+
+    ! Weighted densities
+    do n = 0, 3
+      zeta(n) = PI/6._dp * rho * sum(x * saft_para%m * saft_para%d**n)    ! equation (9) or (A.8) in [1]
+    end do
+
+    ! Radial distribution function 'g_ij(r)' for the hard-sphere fluid;
+    !  equation (A.27) in [1]
+    rho_dg_hs_ij_drho = zeta(3)/(1-zeta(3)) &
+     & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j))) &
+     & * ((3._dp*zeta(2))/((1-zeta(3))**2) + (6._dp*zeta(2)*zeta(3))/((1-zeta(3))**3)) &
+     & + (saft_para%d(i)*saft_para%d(j)/(saft_para%d(i) + saft_para%d(j)))**2  &
+     & * ( (4._dp*zeta(2)**2)/((1-zeta(3))**3) + (6._dp*zeta(2)**2*zeta(3))/((1-zeta(3))**4) )
+  end function g_hs_ij
+  ! ############################################################################
+
+
+
+
 end module hard_spheres_mod
