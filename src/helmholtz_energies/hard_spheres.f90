@@ -17,10 +17,10 @@
 ! MODULE hard_spheres_mod
 !  This module contains all dispersion contributions for the PC-SAFT equation
 !  of state:
+!
 !   - pure real function a_tilde_hs(saft_para, rho, Temp, x)
 !     ~ <type(saft_parameter)>    :: saft_para      ! PC-SAFT parameters
 !     ~ <real, dimension(N_comp)> :: rho            ! densities
-!     ~ <real>                    :: Temp           ! temperature
 !     ~ <real, dimension(N_comp)> :: x              ! mole fractions
 !
 !   - subroutine ....

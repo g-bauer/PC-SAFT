@@ -13,7 +13,11 @@
 !   - Comments
 !   -
 
-
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+! MODULE kinds_mod
+!  This module contains the double precision compiler independent kind
+!  kind definition.
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 module kinds_mod
     use iso_fortran_env, only: real64
     implicit none
@@ -22,3 +26,4 @@ module kinds_mod
 
     integer, parameter :: dp = kind(real64)
 end module kinds_mod
+! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

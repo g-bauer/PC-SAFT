@@ -18,6 +18,7 @@
 ! MODULE dispersion_mod
 !  This module contains all dispersion contributions for the PC-SAFT equation
 !  of state:
+!
 !   - pure real function a_tilde_disp(saft_para, rho, Temp, x)
 !     ~ <type(saft_parameter)>    :: saft_para      ! PC-SAFT parameters
 !     ~ <real, dimension(N_comp)> :: rho            ! densities
