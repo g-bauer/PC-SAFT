@@ -120,6 +120,66 @@ contains
 
 
 
+  ! ############################################################################
+  ! Function for the calculation of the hard-chain contribution to the
+  !  chemical potential 'mu_hc(i)/kT' according to
+  !  equation (A.35)  in [1].
+  !  {Gross, J., Sadowski, G.: Perturbed-Chain SAFT: An Equation of State Based on a Perturbation Theory for Chain Molecules
+  !  Industrial Engineering & Chemistry Research, 2001, Vol. 40 (4), 1244-1260}
+  !
+  ! pure real function (in<PC-SAFT parameter>, in<densities>, in<molar fractions>, in<component index>, in<component index>)
+  !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
+  !  in  < rho       :: real(N_comp) >
+  !  in  < x         :: real(N_comp) >
+  ! ----------------------------------------------------------------------------
+  pure real(dp) function beta_mu_hc(saft_para, rho, x)
+    ! Input variables
+    type(saft_parameter)                        :: saft_para    ! parameter container type
+    real(dp), dimension(:,), intent(in)         :: rho          ! density
+    real(dp), intent(in)                        :: x            ! molefraction
+
+    ! Local variables
+    real(dp)                  :: m_dash     ! mean segment number
+    real(dp)                  :: summand
+    integer                   :: i, k       ! iteration variables
+
+
+    ! Weighted densities
+    do n = 0, 3
+      zeta(n) = PI/6._dp * rho * sum(x * saft_para%m * saft_para%d**n)    ! equation (9) or (A.8) in [1]
+    end do
+
+    ! Partial densities
+    do n = 0, 3
+      zetax(n,k) = PI/6._dp * rho * saft_para%m(k) * saft_para%d(k)**n    ! equation (A.34) in [1]
+    end do
+
+    ! Partial derivative of the residual reduced Helmholtz energy 'a_hs' w.r.t.
+    !  the molar fraction 'x_k' according to equation (A.36) in [1]
+    do k = 1, saft_para%N_comp
+      da_hs_dx(k) = -zetax(0,k)/zeta(0) * a_tilde_hs(saft_para,rho,x) &               ! equation (A.36) in [1]
+            & + 1._dp* ( (3._dp*( zetax(1,k)*zeta(2) + zeta(1)*zetax(2,k) )) &
+            & /(1._dp - zeta(3)) &
+            & + (3._dp*zeta(1)*zeta(2)*zetax(3,k))/(1._dp-zeta(3))**2 &
+            & + (3._dp*zeta(2)*zetax(2,k))/(zeta(3)*(1._dp-zeta(3))**2) &
+            & + (zeta(2)**3*zetax(3,k)*(3._dp*zeta(3)-1._dp)) &
+            & / (zeta(3)**2 * (1._dp-zeta(3))**3 ) &
+            & + ((3._dp*zeta(2)**2*zetax(2,k)*zeta(3) - 2._dp*zeta(2)**3*zetax(3,k)) &
+            & / (zeta(3)**3) - zeta(0,k)) * log(1._dp-zeta(3))   &
+            & + (zeta(0) - zeta(2)**3/zeta(3)**2) * zetax(3,k)/(1._dp-zeta(3)) )
+    end do
+
+    ! Residual chemical potential of the hard-sphere contribution multiplied with 'beta'
+    equation (A.33) in [1]
+    do k = 1, saft_para%N_comp
+      beta_mu_hs(k) = a_tilde_hs(saft_para, rho, x) + (Z_hs - 1._dp) &          ! equation (A.33) in [1]
+                    & + da_hs_dx(k) - sum( x * da_hs_dx )
+    end do
+
+ end function beta_mu_hs
+  ! ############################################################################
+
+
 
 
 end module hard_chains_mod

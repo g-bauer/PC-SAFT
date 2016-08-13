@@ -211,8 +211,6 @@ contains
   !  in  < saft_para :: saft_parameter {m(N_comp), d(N_comp)}>
   !  in  < rho       :: real(N_comp) >
   !  in  < x         :: real(N_comp) >
-  !  in  < i         :: integer      >
-  !  in  < j         :: integer      >
   ! ----------------------------------------------------------------------------
   pure real(dp) function beta_mu_hs(saft_para, rho, x)
     ! Input variables
@@ -256,7 +254,7 @@ contains
     end do
 
     ! Residual chemical potential of the hard-sphere contribution multiplied with 'beta'
-    equation (A.33) in [1]
+    !  according to equation (A.33) in [1]
     do k = 1, saft_para%N_comp
       beta_mu_hs(k) = a_tilde_hs(saft_para, rho, x) + (Z_hs - 1._dp) &          ! equation (A.33) in [1]
                     & + da_hs_dx(k) - sum( x * da_hs_dx )
