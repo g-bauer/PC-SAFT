@@ -134,15 +134,32 @@ contains
   ! ----------------------------------------------------------------------------
   pure real(dp) function beta_mu_hc(saft_para, rho, x)
     ! Input variables
-    type(saft_parameter)                        :: saft_para    ! parameter container type
-    real(dp), dimension(:,), intent(in)         :: rho          ! density
-    real(dp), intent(in)                        :: x            ! molefraction
+    type(saft_parameter)                        :: saft_para      ! parameter container type
+    real(dp), dimension(:,), intent(in)         :: rho            ! density
+    real(dp), intent(in)                        :: x              ! molefraction
 
     ! Local variables
-    real(dp)                  :: m_dash     ! mean segment number
-    real(dp)                  :: summand
-    integer                   :: i, k       ! iteration variables
+    real(dp)                                    :: m_dash         ! mean segment number
+    real(dp), dimension(0:3)                    :: zeta         ! weighted densities
+    real(dp), dimension(0:3, :), allocatable    :: zetax        ! partial densities
+    real(dp), dimension(:),      allocatable    :: da_hs_dx     ! partial derivative of the reduced Helmholtz energy hard-sphere contribution w.r.t. the molar fractions
+    real(dp)                                    :: summand = 0.0  ! summand, help variable
+    real(dp), dimension(:),      allocatable    :: da_hc_dx       ! partial derivative of the reduced Helmholtz energy hard-chain contribution w.r.t. the molar fractions
 
+    integer                                     :: i, k           ! iteration variables
+
+
+    ! Allocation
+    allocate(da_hc_dx(saft_para%N_comp), zetax(0:3, saft_para%N_comp), da_hs_dx(saft_para%N_comp) )
+
+    ! Mean segment number
+    m_dash = sum(saft_para%m*x)                                     ! equation (A.5) in [1]
+
+    ! Calculation of the summand according to equation (A.35) in [1]
+    do i = 1, saft_para%N_comp
+      summand = summand + x(i)*(m(i)-1._dp)/g_hs_ij(saft_para, rho, x, i, i) &
+              & * dg_hs_ij_dxk(saft_para, rho, x, i, i)
+    end do
 
     ! Weighted densities
     do n = 0, 3
@@ -169,14 +186,20 @@ contains
             & + (zeta(0) - zeta(2)**3/zeta(3)**2) * zetax(3,k)/(1._dp-zeta(3)) )
     end do
 
-    ! Residual chemical potential of the hard-sphere contribution multiplied with 'beta'
-    equation (A.33) in [1]
+    ! Calculation of the partial derivative of the hard-chain contribution to
+    !  the reduced Helmholtz energy 'a_hc' w.r.t. the molar fractions
     do k = 1, saft_para%N_comp
-      beta_mu_hs(k) = a_tilde_hs(saft_para, rho, x) + (Z_hs - 1._dp) &          ! equation (A.33) in [1]
-                    & + da_hs_dx(k) - sum( x * da_hs_dx )
+      da_hc_dx(k) = m(k)*a_tilde_hs(saft_para, rho, x) + m_dash*da_hs_dx(k) &   ! equation (A.35) in [1]
+                  & - summand
     end do
 
- end function beta_mu_hs
+    ! Calculation of the hard chain contribution to the chemical potential
+    do k = 1, saft_para%N_comp
+      beta_mu_hc(k) = a_tilde_hc(saft_para, rho, x) + (Z_hc - 1._dp) + da_hc_dx(k)
+          & - sum( x * da_hc_dx )
+    end do
+
+ end function beta_mu_hc
   ! ############################################################################
 
 
