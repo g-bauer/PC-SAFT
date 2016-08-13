@@ -134,19 +134,19 @@ contains
   ! ----------------------------------------------------------------------------
   pure real(dp) function beta_mu_hc(saft_para, rho, x)
     ! Input variables
-    type(saft_parameter)                        :: saft_para      ! parameter container type
-    real(dp), dimension(:), intent(in)          :: rho            ! density
-    real(dp), intent(in)                        :: x              ! molefraction
+    type(saft_parameter)                        :: saft_para          ! parameter container type
+    real(dp), dimension(:), intent(in)          :: rho                ! density
+    real(dp), intent(in)                        :: x                  ! molefraction
 
     ! Local variables
-    real(dp)                                    :: m_dash         ! mean segment number
-    real(dp), dimension(0:3)                    :: zeta         ! weighted densities
-    real(dp), dimension(0:3, :), allocatable    :: zetax        ! partial densities
-    real(dp), dimension(:),      allocatable    :: da_hs_dx     ! partial derivative of the reduced Helmholtz energy hard-sphere contribution w.r.t. the molar fractions
-    real(dp)                                    :: summand = 0.0  ! summand, help variable
-    real(dp), dimension(:),      allocatable    :: da_hc_dx       ! partial derivative of the reduced Helmholtz energy hard-chain contribution w.r.t. the molar fractions
+    real(dp)                                    :: m_dash             ! mean segment number
+    real(dp), dimension(0:3)                    :: zeta               ! weighted densities
+    real(dp), dimension(0:3, :), allocatable    :: zetax              ! partial densities
+    real(dp), dimension(:),      allocatable    :: da_hs_dx           ! partial derivative of the reduced Helmholtz energy hard-sphere contribution w.r.t. the molar fractions
+    real(dp)                                    :: summand = 0.0_dp   ! summand, help variable
+    real(dp), dimension(:),      allocatable    :: da_hc_dx           ! partial derivative of the reduced Helmholtz energy hard-chain contribution w.r.t. the molar fractions
 
-    integer                                     :: i, k           ! iteration variables
+    integer                                     :: i, k               ! iteration variables
 
 
     ! Allocation
