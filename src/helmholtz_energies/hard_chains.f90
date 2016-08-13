@@ -135,7 +135,7 @@ contains
   pure real(dp) function beta_mu_hc(saft_para, rho, x)
     ! Input variables
     type(saft_parameter)                        :: saft_para      ! parameter container type
-    real(dp), dimension(:,), intent(in)         :: rho            ! density
+    real(dp), dimension(:), intent(in)          :: rho            ! density
     real(dp), intent(in)                        :: x              ! molefraction
 
     ! Local variables
