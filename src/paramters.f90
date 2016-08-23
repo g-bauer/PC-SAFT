@@ -20,5 +20,5 @@ module parameter_mod
     private
     public :: PI
 
-    real(dp), parameter :: PI = 3.14159265359
+    real(dp), parameter :: PI = 4._dp * atan(1.0)
 end module parameter_mod
